@@ -182,13 +182,18 @@ export default async function handler(req, res) {
         const data =
           await response.json();
 
-        if (data.data) {
+        const rows =
+  data.data ||
+  data.tables?.[0]?.data ||
+  [];
 
-          stockData =
-            data.data.find(
-              item =>
-                item[0] === stockNo
-            );
+if (rows.length) {
+
+  stockData =
+    rows.find(
+      item =>
+        item[0] === stockNo
+    );
 
           if (stockData) {
 
