@@ -80,6 +80,37 @@ export default async function handler(req, res) {
     // 三大法人
     // =========================
     if (type === "institution") {
+
+      const now = new Date();
+
+      const yyyy = now.getFullYear();
+
+      const mm =
+        String(now.getMonth() + 1).padStart(2, "0");
+
+      const dd =
+        String(now.getDate()).padStart(2, "0");
+
+      const date = `${yyyy}${mm}${dd}`;
+
+      const api =
+        `https://www.twse.com.tw/fund/BFI82U?response=json&dayDate=${date}&type=day`;
+
+      const response = await fetch(api, {
+        headers: {
+          "User-Agent": "Mozilla/5.0"
+        }
+      });
+
+      const data = await response.json();
+
+      return res.status(200).json({
+        success: true,
+        type: "institution",
+        date,
+        data
+      });
+    }
     // =========================
     // 個股三大法人 T86
     // =========================
@@ -129,37 +160,6 @@ export default async function handler(req, res) {
         data: stockData
       });
     }
-      const now = new Date();
-
-      const yyyy = now.getFullYear();
-
-      const mm =
-        String(now.getMonth() + 1).padStart(2, "0");
-
-      const dd =
-        String(now.getDate()).padStart(2, "0");
-
-      const date = `${yyyy}${mm}${dd}`;
-
-      const api =
-        `https://www.twse.com.tw/fund/BFI82U?response=json&dayDate=${date}&type=day`;
-
-      const response = await fetch(api, {
-        headers: {
-          "User-Agent": "Mozilla/5.0"
-        }
-      });
-
-      const data = await response.json();
-
-      return res.status(200).json({
-        success: true,
-        type: "institution",
-        date,
-        data
-      });
-    }
-
     return res.status(400).json({
       success: false,
       error: "invalid type"
