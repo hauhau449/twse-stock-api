@@ -140,17 +140,52 @@ return res.status(200).json({
       const stockNo =
         req.query.stockNo || "2330";
 
-      const now = new Date();
+      let stockData = null;
 
-      const yyyy = now.getFullYear();
+      let finalDate = null;
 
-      const mm =
-        String(now.getMonth() + 1).padStart(2, "0");
+      for (let i = 0; i < 7; i++) {
 
-      const dd =
-        String(now.getDate()).padStart(2, "0");
+        const d = new Date();
 
-      const date = `${yyyy}${mm}${dd}`;
+        d.setDate(d.getDate() - i);
+
+        const yyyy = d.getFullYear();
+
+        const mm =
+          String(d.getMonth() + 1).padStart(2, "0");
+
+        const dd =
+          String(d.getDate()).padStart(2, "0");
+
+        const date = `${yyyy}${mm}${dd}`;
+
+        const api =
+          `https://www.twse.com.tw/rwd/zh/fund/T86?response=json&date=${date}&selectType=ALLBUT0999`;
+
+        const response = await fetch(api, {
+          headers: {
+            "User-Agent": "Mozilla/5.0"
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.data) {
+
+          stockData =
+            data.data.find(
+              item => item[0] === stockNo
+            );
+
+          if (stockData) {
+
+            finalDate = date;
+
+            break;
+          }
+        }
+      }
 
       const api =
         `https://www.twse.com.tw/rwd/zh/fund/T86?response=json&date=${date}&selectType=ALLBUT0999`;
@@ -177,7 +212,7 @@ return res.status(200).json({
         success: true,
         type: "t86",
         stockNo,
-        date,
+        date: finalDate,
         data: stockData
       });
     }
