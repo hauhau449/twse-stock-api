@@ -140,78 +140,102 @@ export default async function handler(req, res) {
     // 個股法人 T86
     // =========================
 
-    if (type === "t86") {
+if (type === "t86") {
 
-      const stockNo =
-        req.query.stockNo || "2330";
+  const stockNo =
+    req.query.stockNo || "2330";
 
-      let stockData = null;
+  let stockData = null;
 
-      let finalDate = null;
+  let finalDate = null;
 
-      for (let i = 0; i < 10; i++) {
+  // 往前找 10 天
+  for (let i = 0; i < 10; i++) {
 
-        const d = new Date();
+    const d = new Date();
 
-        d.setDate(d.getDate() - i);
+    d.setDate(d.getDate() - i);
 
-        const yyyy = d.getFullYear();
+    const yyyy =
+      d.getFullYear();
 
-        const mm =
-          String(d.getMonth() + 1)
-          .padStart(2, "0");
+    const mm =
+      String(d.getMonth() + 1)
+      .padStart(2, "0");
 
-        const dd =
-          String(d.getDate())
-          .padStart(2, "0");
+    const dd =
+      String(d.getDate())
+      .padStart(2, "0");
 
-        const date =
-          `${yyyy}${mm}${dd}`;
+    const date =
+      `${yyyy}${mm}${dd}`;
 
-        const api =
-          `https://www.twse.com.tw/rwd/zh/fund/T86?response=json&date=${date}&selectType=ALLBUT0999`;
+    const api =
+      `https://www.twse.com.tw/rwd/zh/fund/T86?response=json&date=${date}&selectType=ALLBUT0999`;
 
-        const response =
-          await fetch(api, {
-            headers: {
-              "User-Agent":
-                "Mozilla/5.0"
-            }
-          });
+    try {
 
-        const data =
-          await response.json();
-
-        const rows =
-  data.data ||
-  data.tables?.[0]?.data ||
-  [];
-
-if (rows.length) {
-
-  stockData =
-    rows.find(
-      item =>
-        String(item[0]).trim() === String(stockNo)
-    );
-
-          if (stockData) {
-
-            finalDate = date;
-
-            break;
+      const response =
+        await fetch(api, {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0"
           }
+        });
+
+      const json =
+        await response.json();
+
+      const rows =
+        json.data ||
+        json.tables?.[0]?.data ||
+        [];
+
+      // 有資料才繼續
+      if (rows.length > 0) {
+
+        stockData =
+          rows.find(
+            item =>
+              String(item[0]).trim() ===
+              String(stockNo)
+          );
+
+        // 找到股票
+        if (stockData) {
+
+          finalDate = date;
+
+          break;
         }
       }
 
-      return res.status(200).json({
-        success: true,
-        type: "t86",
-        stockNo,
-        date: finalDate,
-        data: stockData
-      });
+    } catch (e) {
+
     }
+  }
+
+  // 找不到
+  if (!stockData) {
+
+    return res.status(200).json({
+      success: false,
+      type: "t86",
+      stockNo,
+      error:
+        "official data unavailable"
+    });
+  }
+
+  // 成功
+  return res.status(200).json({
+    success: true,
+    type: "t86",
+    stockNo,
+    date: finalDate,
+    data: stockData
+  });
+}
 
     return res.status(400).json({
       success: false,
