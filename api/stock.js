@@ -80,7 +80,55 @@ export default async function handler(req, res) {
     // 三大法人
     // =========================
     if (type === "institution") {
+    // =========================
+    // 個股三大法人 T86
+    // =========================
+    if (type === "t86") {
 
+      const stockNo =
+        req.query.stockNo || "2330";
+
+      const now = new Date();
+
+      const yyyy = now.getFullYear();
+
+      const mm =
+        String(now.getMonth() + 1).padStart(2, "0");
+
+      const dd =
+        String(now.getDate()).padStart(2, "0");
+
+      const date = `${yyyy}${mm}${dd}`;
+
+      const api =
+        `https://www.twse.com.tw/rwd/zh/fund/T86?response=json&date=${date}&selectType=ALLBUT0999`;
+
+      const response = await fetch(api, {
+        headers: {
+          "User-Agent": "Mozilla/5.0"
+        }
+      });
+
+      const data = await response.json();
+
+      let stockData = null;
+
+      if (data.data) {
+
+        stockData =
+          data.data.find(
+            item => item[0] === stockNo
+          );
+      }
+
+      return res.status(200).json({
+        success: true,
+        type: "t86",
+        stockNo,
+        date,
+        data: stockData
+      });
+    }
       const now = new Date();
 
       const yyyy = now.getFullYear();
