@@ -192,7 +192,7 @@ if (rows.length) {
   stockData =
     rows.find(
       item =>
-        item[0] === stockNo
+        String(item[0]).trim() === String(stockNo)
     );
 
           if (stockData) {
