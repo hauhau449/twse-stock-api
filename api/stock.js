@@ -11,33 +11,54 @@ export default async function handler(req, res) {
 
       const stockNo = req.query.stockNo || "2330";
 
-      const now = new Date();
+            const months = [];
 
-      const yyyy = now.getFullYear();
+      for (let i = 0; i < 6; i++) {
 
-      const mm =
-        String(now.getMonth() + 1).padStart(2, "0");
+        const d = new Date();
 
-      const date = `${yyyy}${mm}01`;
+        d.setMonth(d.getMonth() - i);
 
-      const api =
-        `https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date=${date}&stockNo=${stockNo}`;
+        const yyyy = d.getFullYear();
 
-      const response = await fetch(api, {
-        headers: {
-          "User-Agent": "Mozilla/5.0"
+        const mm =
+          String(d.getMonth() + 1).padStart(2, "0");
+
+        const date = `${yyyy}${mm}01`;
+
+        months.push(date);
+      }
+
+      let allData = [];
+
+      for (const date of months) {
+
+        const api =
+          `https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date=${date}&stockNo=${stockNo}`;
+
+        const response = await fetch(api, {
+          headers: {
+            "User-Agent": "Mozilla/5.0"
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.data) {
+
+          allData = [
+            ...allData,
+            ...data.data
+          ];
         }
-      });
+      }
 
-      const data = await response.json();
-
-      return res.status(200).json({
-        success: true,
-        type: "stock",
-        stockNo,
-        date,
-        data
-      });
+return res.status(200).json({
+  success: true,
+  type: "stock",
+  stockNo,
+  data: allData
+});
     }
 
     // =========================
